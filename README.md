@@ -1,2 +1,2 @@
-# minp
-MicroShift in Podman
+# minc
+MicroShift in Container
