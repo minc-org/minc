@@ -81,6 +81,19 @@ func (p *provider) WaitForAPI() error {
 	return retry.Retry(cmdFunc, 15, 2*time.Second)
 }
 
+func (p *provider) GetKubeConfig() ([]byte, error) {
+	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
+		return nil, err
+	}
+	cmd := exec.Command("podman",
+		"exec",
+		constants.ContainerName,
+		"cat",
+		fmt.Sprintf("/var/lib/microshift/resources/kubeadmin/%s/kubeconfig", constants.HostName),
+	)
+	return exec.Output(cmd)
+}
+
 func (p *provider) Delete() error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err

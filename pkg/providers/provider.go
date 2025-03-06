@@ -5,6 +5,7 @@ type Provider interface {
 	Info() (*ProviderInfo, error)
 	Create() error
 	WaitForAPI() error
+	GetKubeConfig() ([]byte, error)
 	Delete() error
 	List() error
 }
