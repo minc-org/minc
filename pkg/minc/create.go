@@ -14,5 +14,9 @@ func Create(provider string) error {
 	if err := p.Create(); err != nil {
 		return err
 	}
+	log.Info("Waiting for API server to start...")
+	if err := p.WaitForAPI(); err != nil {
+		return err
+	}
 	return nil
 }

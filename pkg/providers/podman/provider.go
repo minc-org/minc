@@ -3,10 +3,13 @@ package podman
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/exec"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/providers"
+	"github.com/minc-org/minc/pkg/retry"
 )
 
 // Provider implements provider.Provider
@@ -52,6 +55,30 @@ func (p *provider) Create() error {
 	}
 	log.Debug(string(out))
 	return nil
+}
+
+func (p *provider) WaitForAPI() error {
+	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
+		return err
+	}
+	cmdFunc := func() error {
+		cmd := exec.Command("podman",
+			"exec",
+			constants.ContainerName,
+			"oc",
+			"--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+			"get",
+			"node",
+		)
+		out, err := exec.Output(cmd)
+		if err != nil {
+			return err
+		}
+
+		log.Debug(string(out))
+		return nil
+	}
+	return retry.Retry(cmdFunc, 15, 2*time.Second)
 }
 
 func (p *provider) Delete() error {
