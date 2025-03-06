@@ -104,7 +104,7 @@ func (cmd *LocalCmd) Run() error {
 	}
 
 	if err := cmd.Cmd.Run(); err != nil {
-		log.Error(combinedOutput.String(), cmd.Args)
+		log.Debug(combinedOutput.String(), "Args", cmd.Args)
 		return err
 	}
 	return nil
