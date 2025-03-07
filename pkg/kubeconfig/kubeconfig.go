@@ -2,6 +2,7 @@ package kubeconfig
 
 import (
 	"fmt"
+	"github.com/minc-org/minc/pkg/constants"
 	"os"
 
 	"github.com/minc-org/minc/pkg/log"
@@ -10,10 +11,7 @@ import (
 )
 
 func UpdateKubeConfig(config []byte) error {
-	kubeConfigPath := clientcmd.RecommendedHomeFile
-	if os.Getenv("KUBECONFIG") != "" {
-		kubeConfigPath = os.Getenv("KUBECONFIG")
-	}
+	kubeConfigPath := getKubeConfigPath()
 	log.Debug(fmt.Sprintf("Updating kubeconfig at %s", kubeConfigPath))
 	defaultConfig, err := clientcmd.LoadFromFile(kubeConfigPath)
 	if err != nil {
@@ -30,6 +28,14 @@ func UpdateKubeConfig(config []byte) error {
 		return err
 	}
 	return nil
+}
+
+func getKubeConfigPath() string {
+	kubeConfigPath := clientcmd.RecommendedHomeFile
+	if os.Getenv("KUBECONFIG") != "" {
+		kubeConfigPath = os.Getenv("KUBECONFIG")
+	}
+	return kubeConfigPath
 }
 
 // mergeConfigs merges two kubeconfig files and returns a single merged configuration.
@@ -58,4 +64,42 @@ func mergeConfigs(config1, config2 *api.Config) *api.Config {
 	}
 
 	return mergedConfig
+}
+
+func RemoveClusterFromConfig() error {
+	kubeConfigPath := getKubeConfigPath()
+	log.Debug(fmt.Sprintf("Updating kubeconfig at %s", kubeConfigPath))
+	config, err := clientcmd.LoadFromFile(kubeConfigPath)
+	if err != nil {
+		return err
+	}
+	// Check if the cluster exists
+	if _, exists := config.Clusters[constants.ContainerName]; !exists {
+		return fmt.Errorf("cluster %s not found in kubeconfig", constants.ContainerName)
+	}
+
+	// Remove cluster, context, and user
+	delete(config.Clusters, constants.ContainerName)
+
+	// Find and remove the associated context
+	for ctxName, ctx := range config.Contexts {
+		if ctx.Cluster == constants.ContainerName {
+			delete(config.Contexts, ctxName)
+			// Remove associated user
+			delete(config.AuthInfos, ctx.AuthInfo)
+			// If it's the current context, reset it
+			if config.CurrentContext == ctxName {
+				config.CurrentContext = ""
+			}
+		}
+	}
+
+	// Save updated kubeconfig
+	err = clientcmd.WriteToFile(*config, kubeConfigPath)
+	if err != nil {
+		return fmt.Errorf("failed to save kubeconfig: %v", err)
+	}
+
+	log.Debug(fmt.Sprintf("Cluster %s removed successfully from kubeconfig\n", constants.ContainerName))
+	return nil
 }
