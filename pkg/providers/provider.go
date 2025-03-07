@@ -4,7 +4,7 @@ type Provider interface {
 	Name() string
 	Info() (*ProviderInfo, error)
 	Create() error
-	WaitForAPI() error
+	WaitForMicroShiftService() error
 	GetKubeConfig() ([]byte, error)
 	Delete() error
 	List() error

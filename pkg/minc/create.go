@@ -18,8 +18,8 @@ func Create(provider string) error {
 		return err
 	}
 
-	log.Info("Waiting for API server to start...")
-	if err := p.WaitForAPI(); err != nil {
+	log.Info("Waiting for MicroShift service to start...")
+	if err := p.WaitForMicroShiftService(); err != nil {
 		return err
 	}
 

@@ -57,7 +57,7 @@ func (p *provider) Create() error {
 	return nil
 }
 
-func (p *provider) WaitForAPI() error {
+func (p *provider) WaitForMicroShiftService() error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
@@ -65,10 +65,9 @@ func (p *provider) WaitForAPI() error {
 		cmd := exec.Command("podman",
 			"exec",
 			constants.ContainerName,
-			"oc",
-			"--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
-			"get",
-			"node",
+			"systemctl",
+			"is-active",
+			"microshift",
 		)
 		out, err := exec.Output(cmd)
 		if err != nil {
