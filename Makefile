@@ -30,16 +30,16 @@ vendor:
 install: $(SOURCES)
 	go install ./cmd
 
-$(BUILD_DIR)/macos-amd64/minc: $(SOURCES)
+$(BUILD_DIR)/macos-amd64/minc_darwin_amd64: $(SOURCES)
 	GOARCH=amd64 GOOS=darwin go build  -o $@ ./cmd
 
-$(BUILD_DIR)/macos-arm64/minc: $(SOURCES)
+$(BUILD_DIR)/macos-arm64/minc_darwin_arm64: $(SOURCES)
 	GOARCH=arm64 GOOS=darwin go build  -o $@ ./cmd
 
-$(BUILD_DIR)/linux-amd64/minc: $(SOURCES)
+$(BUILD_DIR)/linux-amd64/minc_linux_amd64: $(SOURCES)
 	GOOS=linux GOARCH=amd64 go build  -o $@ ./cmd
 
-$(BUILD_DIR)/linux-arm64/minc: $(SOURCES)
+$(BUILD_DIR)/linux-arm64/minc_linux_arm64: $(SOURCES)
 	GOOS=linux GOARCH=arm64 go build  -o $@ ./cmd
 
 $(BUILD_DIR)/windows-amd64/minc.exe: $(SOURCES)
@@ -47,8 +47,12 @@ $(BUILD_DIR)/windows-amd64/minc.exe: $(SOURCES)
 
 
 .PHONY: cross ## Cross compiles all binaries
-cross: $(BUILD_DIR)/macos-arm64/minc $(BUILD_DIR)/macos-amd64/minc $(BUILD_DIR)/linux-amd64/minc $(BUILD_DIR)/windows-amd64/minc.exe
+cross: $(BUILD_DIR)/macos-amd64/minc_darwin_amd64 $(BUILD_DIR)/macos-arm64/minc_darwin_arm64 $(BUILD_DIR)/linux-amd64/minc_linux_amd64 $(BUILD_DIR)/linux-arm64/minc_linux_arm64 $(BUILD_DIR)/windows-amd64/minc.exe
 
+.PHONY: release ## Put all binary to release folder
+release: cross
+	mkdir -p $(BUILD_DIR)/release
+	cp $(BUILD_DIR)/macos-amd64/minc_darwin_amd64 $(BUILD_DIR)/macos-arm64/minc_darwin_arm64 $(BUILD_DIR)/linux-amd64/minc_linux_amd64 $(BUILD_DIR)/linux-arm64/minc_linux_arm64 $(BUILD_DIR)/windows-amd64/minc.exe $(BUILD_DIR)/release
 
 .PHONY: clean ## Remove all build artifacts
 clean:
