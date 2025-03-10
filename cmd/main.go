@@ -5,6 +5,7 @@ import (
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -71,6 +72,7 @@ func main() {
 	}
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal("Error executing command", "err", err)
+		fmt.Println("Error executing command: ", err)
+		os.Exit(1)
 	}
 }
