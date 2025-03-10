@@ -139,6 +139,9 @@ func (p *provider) List() error {
 	if err != nil {
 		return err
 	}
+	if string(out) == "" {
+		return fmt.Errorf("no %s containers found, use 'create' command to create it", constants.ContainerName)
+	}
 	fmt.Printf("%s", out)
 	return nil
 }
