@@ -75,7 +75,8 @@ func RemoveClusterFromConfig() error {
 	}
 	// Check if the cluster exists
 	if _, exists := config.Clusters[constants.ContainerName]; !exists {
-		return fmt.Errorf("cluster %s not found in kubeconfig", constants.ContainerName)
+		log.Debug(fmt.Sprintf("cluster %s not found in kubeconfig", constants.ContainerName))
+		return nil
 	}
 
 	// Remove cluster, context, and user
