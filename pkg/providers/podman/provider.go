@@ -133,12 +133,13 @@ func (p *provider) List() error {
 		"ps",
 		"-s",
 		"-f", fmt.Sprintf("name=%s", constants.ContainerName),
+		"--format", "{{.Names}} {{.Ports}}",
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
 	}
-	log.Debug(string(out))
+	fmt.Printf("%s", out)
 	return nil
 }
 
