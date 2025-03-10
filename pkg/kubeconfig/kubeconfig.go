@@ -58,10 +58,8 @@ func mergeConfigs(config1, config2 *api.Config) *api.Config {
 		mergedConfig.AuthInfos[name] = auth
 	}
 
-	// Optionally, update the current context if not set
-	if mergedConfig.CurrentContext == "" {
-		mergedConfig.CurrentContext = config2.CurrentContext
-	}
+	// update the current context
+	mergedConfig.CurrentContext = config2.CurrentContext
 
 	return mergedConfig
 }
