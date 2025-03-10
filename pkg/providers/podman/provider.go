@@ -34,6 +34,23 @@ func (p *provider) Info() (*providers.ProviderInfo, error) {
 	return getProviderInfo()
 }
 
+func (p *provider) PullImage() error {
+	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
+		return err
+	}
+	cmd := exec.Command("podman",
+		"pull",
+		"--retry=5",
+		constants.ImageName,
+	)
+	out, err := exec.Output(cmd)
+	if err != nil {
+		return err
+	}
+	log.Debug(string(out))
+	return nil
+}
+
 func (p *provider) Create() error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err

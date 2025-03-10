@@ -1,7 +1,9 @@
 package minc
 
 import (
+	"fmt"
 	"github.com/minc-org/minc/pkg/cluster"
+	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/kubeconfig"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/providers/register"
@@ -14,6 +16,11 @@ func Create(provider string) error {
 	}
 
 	log.Info("Provider Info", "Provider", p)
+	log.Info(fmt.Sprintf("Ensuring cluster image (%s) ...", constants.ImageName))
+	if err := p.PullImage(); err != nil {
+		return err
+	}
+
 	if err := p.Create(); err != nil {
 		return err
 	}

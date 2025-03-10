@@ -3,6 +3,7 @@ package providers
 type Provider interface {
 	Name() string
 	Info() (*ProviderInfo, error)
+	PullImage() error
 	Create() error
 	WaitForMicroShiftService() error
 	GetKubeConfig() ([]byte, error)
