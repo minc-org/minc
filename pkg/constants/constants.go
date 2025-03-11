@@ -8,6 +8,7 @@ import (
 const (
 	ContainerName = "microshift"
 	HostName      = "127.0.0.1.nip.io"
+	LabelKey      = "io.x-openshift.microshift.cluster"
 )
 
 var (

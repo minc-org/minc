@@ -58,6 +58,7 @@ func (p *provider) Create() error {
 	cmd := exec.Command("podman",
 		"run",
 		"--hostname", constants.HostName,
+		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, constants.ContainerName),
 		"--detach",
 		"--rm", "-it", "--privileged",
 		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
