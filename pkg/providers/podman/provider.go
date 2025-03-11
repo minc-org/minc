@@ -133,7 +133,7 @@ func (p *provider) List() error {
 	cmd := exec.Command("podman",
 		"ps",
 		"-s",
-		"-f", fmt.Sprintf("name=%s", constants.ContainerName),
+		"-f", fmt.Sprintf("label=%s=%s", constants.LabelKey, constants.ContainerName),
 		"--format", "{{.Names}} {{.Ports}}",
 	)
 	out, err := exec.Output(cmd)
