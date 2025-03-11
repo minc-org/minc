@@ -7,6 +7,8 @@ import (
 	"github.com/minc-org/minc/pkg/kubeconfig"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/providers/register"
+	"github.com/minc-org/minc/pkg/spinner"
+	"time"
 )
 
 func Create(provider string) error {
@@ -14,27 +16,35 @@ func Create(provider string) error {
 	if err != nil {
 		return err
 	}
-
 	log.Debug("Provider Info", "Provider", p)
 	log.Info(fmt.Sprintf("Ensuring cluster image (%s) ...", constants.ImageName))
+	s := spinner.New(time.Second)
+	s.Start()
 	if err := p.PullImage(); err != nil {
 		return err
 	}
+	s.Stop()
 
+	s.Start()
 	if err := p.Create(); err != nil {
 		return err
 	}
+	s.Stop()
 
 	log.Info("Waiting for MicroShift service to start...")
+	s.Start()
 	if err := p.WaitForMicroShiftService(); err != nil {
 		return err
 	}
+	s.Stop()
 
 	log.Info("Waiting for KubeConfig ...")
+	s.Start()
 	config, err := p.GetKubeConfig()
 	if err != nil {
 		return err
 	}
+	s.Stop()
 	if err := kubeconfig.UpdateKubeConfig(config); err != nil {
 		return err
 	}
