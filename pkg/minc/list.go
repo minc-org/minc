@@ -10,7 +10,7 @@ func List(provider string) error {
 	if err != nil {
 		return err
 	}
-	log.Info("Provider Info", "Provider", p)
+	log.Debug("Provider Info", "Provider", p)
 	if err := p.List(); err != nil {
 		return err
 	}

@@ -15,7 +15,7 @@ func Create(provider string) error {
 		return err
 	}
 
-	log.Info("Provider Info", "Provider", p)
+	log.Debug("Provider Info", "Provider", p)
 	log.Info(fmt.Sprintf("Ensuring cluster image (%s) ...", constants.ImageName))
 	if err := p.PullImage(); err != nil {
 		return err

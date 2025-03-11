@@ -17,7 +17,7 @@ func SetLogger(level string) {
 
 	// Create a logger instance with the selected handler
 	logger = slog.New(textHandler)
-	logger.Info("Setting up logger", "level", level)
+	logger.Debug("Setting up logger", "level", level)
 }
 
 // parseLogLevel converts a string to slog.Level
