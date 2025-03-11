@@ -16,11 +16,11 @@ func Retry(fn func() error, maxRetries int, initialDelay time.Duration) error {
 			return nil // Success, exit retry loop
 		}
 
-		log.Warn(fmt.Sprintf("Attempt: %d", attempt), "failed:", err)
+		log.Debug(fmt.Sprintf("Attempt: %d", attempt), "failed:", err)
 
 		if attempt < maxRetries {
 			sleepDuration := initialDelay * time.Duration(attempt) // Exponential backoff
-			log.Info("Retrying in", "duration", sleepDuration)
+			log.Debug("Retrying in", "duration", sleepDuration)
 			time.Sleep(sleepDuration)
 		} else {
 			return errors.New("operation failed after multiple attempts: " + err.Error())
