@@ -39,9 +39,7 @@ func (p *provider) PullImage() error {
 		return err
 	}
 	cmd := exec.Command("podman",
-		"pull",
-		"--retry=5",
-		constants.ImageName,
+		providers.PullOptions(constants.ImageName)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
@@ -56,16 +54,7 @@ func (p *provider) Create() error {
 		return err
 	}
 	cmd := exec.Command("podman",
-		"run",
-		"--hostname", constants.HostName,
-		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, constants.ContainerName),
-		"--detach",
-		"-it", "--privileged",
-		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
-		"-p", "9080:80",
-		"-p", "9443:443",
-		"-p", "6443:6443",
-		"--name", constants.ContainerName, constants.ImageName,
+		providers.RunOptions(constants.ContainerName, constants.ImageName)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
@@ -81,11 +70,7 @@ func (p *provider) WaitForMicroShiftService() error {
 	}
 	cmdFunc := func() error {
 		cmd := exec.Command("podman",
-			"exec",
-			constants.ContainerName,
-			"systemctl",
-			"is-active",
-			"microshift",
+			providers.ServiceWaitOption("microshift", constants.ContainerName)...,
 		)
 		out, err := exec.Output(cmd)
 		if err != nil {
@@ -103,10 +88,7 @@ func (p *provider) GetKubeConfig() ([]byte, error) {
 		return nil, err
 	}
 	cmd := exec.Command("podman",
-		"exec",
-		constants.ContainerName,
-		"cat",
-		fmt.Sprintf("/var/lib/microshift/resources/kubeadmin/%s/kubeconfig", constants.HostName),
+		providers.KubeConfigOption(constants.ContainerName, constants.HostName)...,
 	)
 	return exec.Output(cmd)
 }
@@ -116,8 +98,8 @@ func (p *provider) Delete() error {
 		return err
 	}
 	cmd := exec.Command("podman",
-		"rm", "-f",
-		constants.ContainerName)
+		providers.DeleteOptions(constants.ContainerName)...,
+	)
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
@@ -131,10 +113,7 @@ func (p *provider) List() error {
 		return err
 	}
 	cmd := exec.Command("podman",
-		"ps",
-		"-s",
-		"-f", fmt.Sprintf("label=%s=%s", constants.LabelKey, constants.ContainerName),
-		"--format", "{{.Names}} {{.Ports}}",
+		providers.ListOptions(constants.ContainerName)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
