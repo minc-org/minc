@@ -60,7 +60,7 @@ func (p *provider) Create() error {
 		"--hostname", constants.HostName,
 		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, constants.ContainerName),
 		"--detach",
-		"--rm", "-it", "--privileged",
+		"-it", "--privileged",
 		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
 		"-p", "9080:80",
 		"-p", "9443:443",
