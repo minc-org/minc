@@ -2,6 +2,7 @@ package register
 
 import (
 	"github.com/minc-org/minc/pkg/providers"
+	"github.com/minc-org/minc/pkg/providers/moby"
 	"github.com/minc-org/minc/pkg/providers/podman"
 )
 
@@ -10,7 +11,7 @@ func Register(provider string) (providers.Provider, error) {
 	case "podman":
 		return podman.New()
 	case "docker":
-		return nil, nil
+		return moby.New()
 	default:
 		return podman.New()
 	}
