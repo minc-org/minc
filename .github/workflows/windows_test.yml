@@ -1,0 +1,63 @@
+name: Windows Test Podman
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23
+
+      - name: Build binary
+        run: make install
+
+      - name: update wsl in windows
+        run: |
+          wsl --update
+          wsl --version
+
+      - name: Create .wslconfig file to enable cgroupsv2
+        run: |
+          $wslConfigPath = "$env:UserProfile/.wslconfig"
+          $content = "
+          [wsl2]
+          kernelCommandLine = cgroup_no_v1=all
+          "
+          Set-Content -Path $wslConfigPath -Value $content -Encoding UTF8
+          Write-Output "File created: $wslConfigPath"
+        shell: pwsh
+
+      - name: Restart wsl
+        run: wsl --shutdown
+
+      - name: Get latest podman remote binary
+        run: |
+          curl -L -O https://github.com/containers/podman/releases/download/v5.1.1/podman-remote-release-windows_amd64.zip
+          unzip podman-remote-release-windows_amd64.zip
+
+      - name: Put podman binary to bin folder
+        run: Copy-Item -Path .\podman-5.1.1\usr\bin\* -Destination $env:USERPROFILE\go\bin\ -Recurse
+        shell: pwsh
+
+      - name: Start the podman machine
+        run: podman machine init --rootful --now
+
+      - name: Run minp cluster
+        run: minc create cluster --log-level debug
