@@ -13,4 +13,5 @@ const (
 
 var (
 	ImageName = fmt.Sprintf("quay.io/praveenkumar/microshift-okd:4.18.0-okd-scos.1-%s", runtime.GOARCH)
+	Version   = "dev"
 )

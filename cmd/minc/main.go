@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/spf13/cobra"
@@ -52,7 +53,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show the version of minc",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("version: 0.0.3")
+		fmt.Printf("version: %s\n", constants.Version)
 	},
 }
 
