@@ -6,27 +6,29 @@ import (
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/kubeconfig"
 	"github.com/minc-org/minc/pkg/log"
+	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/minc-org/minc/pkg/providers/register"
 	"github.com/minc-org/minc/pkg/spinner"
 	"time"
 )
 
-func Create(provider string) error {
-	p, err := register.Register(provider)
+func Create(cType *types.CreateType) error {
+	p, err := register.Register(cType.Provider)
 	if err != nil {
 		return err
 	}
 	log.Debug("Provider Info", "Provider", p)
-	log.Info(fmt.Sprintf("Ensuring cluster image (%s) ...", constants.ImageName))
+	img := constants.GetUShiftImage(cType.UShiftVersion)
+	log.Info(fmt.Sprintf("Ensuring cluster image (%s) ...", img))
 	s := spinner.New(time.Second)
 	s.Start()
-	if err := p.PullImage(); err != nil {
+	if err := p.PullImage(img); err != nil {
 		return err
 	}
 	s.Stop()
 
 	s.Start()
-	if err := p.Create(); err != nil {
+	if err := p.Create(cType); err != nil {
 		return err
 	}
 	s.Stop()

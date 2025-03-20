@@ -3,6 +3,7 @@ package podman
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/minc-org/minc/pkg/minc/types"
 	"time"
 
 	"github.com/minc-org/minc/pkg/constants"
@@ -34,12 +35,12 @@ func (p *provider) Info() (*providers.ProviderInfo, error) {
 	return getProviderInfo()
 }
 
-func (p *provider) PullImage() error {
+func (p *provider) PullImage(image string) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
 	cmd := exec.Command("podman",
-		providers.PullOptions(constants.ImageName)...,
+		providers.PullOptions(image)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
@@ -49,12 +50,12 @@ func (p *provider) PullImage() error {
 	return nil
 }
 
-func (p *provider) Create() error {
+func (p *provider) Create(cType *types.CreateType) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
 	cmd := exec.Command("podman",
-		providers.RunOptions(constants.ContainerName, constants.ImageName)...,
+		providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion))...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
