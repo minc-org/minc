@@ -5,20 +5,26 @@ import (
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
+	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 var (
-	provider string
-	logLevel string
+	provider      string
+	logLevel      string
+	uShiftVersion string
 )
 
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := minc.Create(provider)
+		cType := &types.CreateType{
+			Provider:      provider,
+			UShiftVersion: uShiftVersion,
+		}
+		err := minc.Create(cType)
 		if err != nil {
 			log.Fatal("error creating cluster", "err", err)
 		}
@@ -62,6 +68,9 @@ func main() {
 		Use:   "minc",
 		Short: "MicroShift in Container",
 	}
+	// create command flags
+	createCmd.PersistentFlags().StringVarP(&uShiftVersion, "microshift-version", "m", constants.UShiftVersion,
+		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
 
 	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd)
 	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "podman", "Specify the provider (e.g., podman, docker)")
