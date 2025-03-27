@@ -11,8 +11,8 @@ const (
 	LabelKey      = "io.x-openshift.microshift.cluster"
 	UShiftVersion = "4.18.0-okd-scos.1"
 	Registry      = "quay.io"
-	RegistryOrg   = "praveenkumar"
-	ImageName     = "microshift-okd"
+	RegistryOrg   = "minc-org"
+	ImageName     = "minc"
 )
 
 var (
