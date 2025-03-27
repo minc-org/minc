@@ -9,7 +9,7 @@ const (
 	ContainerName = "microshift"
 	HostName      = "127.0.0.1.nip.io"
 	LabelKey      = "io.x-openshift.microshift.cluster"
-	UShiftVersion = "4.18.0-okd-scos.1"
+	UShiftVersion = "4.18.0-okd-scos.4"
 	Registry      = "quay.io"
 	RegistryOrg   = "minc-org"
 	ImageName     = "minc"
