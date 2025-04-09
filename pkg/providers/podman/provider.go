@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/minc-org/minc/pkg/minc/types"
 	"runtime"
+	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/minc-org/minc/pkg/constants"
@@ -13,6 +16,9 @@ import (
 	"github.com/minc-org/minc/pkg/providers"
 	"github.com/minc-org/minc/pkg/retry"
 )
+
+var useSudo bool
+var once sync.Once
 
 // Provider implements provider.Provider
 // see NewProvider
@@ -117,6 +123,25 @@ func (p *provider) List() error {
 }
 
 func getProviderInfo() (*providers.ProviderInfo, error) {
+	var initError error
+	once.Do(func() {
+		cmd := exec.Command("podman", "info", "--format", "{{.Host.Security.Rootless}}")
+		out, err := exec.Output(cmd)
+		if err != nil {
+			initError = err
+			return
+		}
+		needSudo, err := strconv.ParseBool(strings.TrimSpace(string(out)))
+		if err != nil {
+			initError = err
+			return
+		}
+		useSudo = needSudo
+	})
+	if initError != nil {
+		return nil, initError
+	}
+
 	cmd := podmanCmd([]string{"info", "--format", "json"})
 	out, err := exec.Output(cmd)
 	if err != nil {
@@ -167,7 +192,8 @@ func (p *provider) String() string {
 }
 
 func podmanCmd(args []string) exec.Cmd {
-	if runtime.GOOS == "linux" {
+	if useSudo && runtime.GOOS == "linux" {
+		log.Debug("Running with sudo:", "podman", strings.Join(args, " "))
 		return exec.Command("sudo", append([]string{"podman"}, args...)...)
 	} else {
 		return exec.Command("podman", args...)
