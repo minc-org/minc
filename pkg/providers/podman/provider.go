@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minc-org/minc/pkg/minc/types"
+	"runtime"
 	"time"
 
 	"github.com/minc-org/minc/pkg/constants"
@@ -39,9 +40,7 @@ func (p *provider) PullImage(image string) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	cmd := exec.Command("podman",
-		providers.PullOptions(image)...,
-	)
+	cmd := podmanCmd(providers.PullOptions(image))
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
@@ -54,9 +53,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	cmd := exec.Command("podman",
-		providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion))...,
-	)
+	cmd := podmanCmd(providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion)))
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
@@ -70,9 +67,7 @@ func (p *provider) WaitForMicroShiftService() error {
 		return err
 	}
 	cmdFunc := func() error {
-		cmd := exec.Command("podman",
-			providers.ServiceWaitOption("microshift", constants.ContainerName)...,
-		)
+		cmd := podmanCmd(providers.ServiceWaitOption("microshift", constants.ContainerName))
 		out, err := exec.Output(cmd)
 		if err != nil {
 			return err
@@ -88,9 +83,7 @@ func (p *provider) GetKubeConfig() ([]byte, error) {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return nil, err
 	}
-	cmd := exec.Command("podman",
-		providers.KubeConfigOption(constants.ContainerName, constants.HostName)...,
-	)
+	cmd := podmanCmd(providers.KubeConfigOption(constants.ContainerName, constants.HostName))
 	return exec.Output(cmd)
 }
 
@@ -98,9 +91,7 @@ func (p *provider) Delete() error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	cmd := exec.Command("podman",
-		providers.DeleteOptions(constants.ContainerName)...,
-	)
+	cmd := podmanCmd(providers.DeleteOptions(constants.ContainerName))
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
@@ -113,9 +104,7 @@ func (p *provider) List() error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	cmd := exec.Command("podman",
-		providers.ListOptions(constants.ContainerName)...,
-	)
+	cmd := podmanCmd(providers.ListOptions(constants.ContainerName))
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
@@ -128,7 +117,7 @@ func (p *provider) List() error {
 }
 
 func getProviderInfo() (*providers.ProviderInfo, error) {
-	cmd := exec.Command("podman", "info", "--format", "json")
+	cmd := podmanCmd([]string{"info", "--format", "json"})
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return nil, err
@@ -175,4 +164,12 @@ func checkCGroupsAndRootFulMode(pInfo *providers.ProviderInfo) error {
 // This is only used for setting the Node's providerID
 func (p *provider) String() string {
 	return "podman"
+}
+
+func podmanCmd(args []string) exec.Cmd {
+	if runtime.GOOS == "linux" {
+		return exec.Command("sudo", append([]string{"podman"}, args...)...)
+	} else {
+		return exec.Command("podman", args...)
+	}
 }

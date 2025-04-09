@@ -31,6 +31,4 @@ jobs:
 
       - name: Run minp cluster
         run: |
-          # mincPath is required to get the absolute path of minc to run with sudo
-          mincPath=$(which minc)          
-          sudo $mincPath create cluster --log-level debug
+          minc create cluster --log-level debug
