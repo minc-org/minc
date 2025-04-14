@@ -7,7 +7,9 @@ import (
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -21,8 +23,8 @@ var createCmd = &cobra.Command{
 	Short: "Create the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
 		cType := &types.CreateType{
-			Provider:      provider,
-			UShiftVersion: uShiftVersion,
+			Provider:      viper.GetString("provider"),
+			UShiftVersion: viper.GetString("microshift-version"),
 		}
 		err := minc.Create(cType)
 		if err != nil {
@@ -36,7 +38,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := minc.List(provider)
+		err := minc.List(viper.GetString(provider))
 		if err != nil {
 			log.Fatal("error listing cluster", "err", err)
 		}
@@ -63,22 +65,72 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+func initConfig() {
+	appName := "minc"
+	configFileName := "config.json"
+
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		fmt.Println("error getting user config directory", err)
+		os.Exit(1)
+	}
+
+	appConfigDir := filepath.Join(configDir, appName)
+	_ = os.MkdirAll(appConfigDir, 0755)
+
+	configFilePath := filepath.Join(appConfigDir, configFileName)
+	// If config file doesn't exist, create an empty one
+	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
+		emptyConfig := []byte("{}")
+		err := os.WriteFile(configFilePath, emptyConfig, 0644)
+		if err != nil {
+			fmt.Println("Error creating config file:", err)
+			os.Exit(1)
+		}
+		fmt.Println("Created empty config file: ", configFilePath)
+	}
+
+	viper.SetConfigFile(configFilePath)
+	// Set defaults
+	viper.SetDefault("provider", "podman")
+	viper.SetDefault("log-level", "info")
+	viper.SetDefault("microshift-version", constants.UShiftVersion)
+
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("Error reading config file", err)
+		os.Exit(1)
+	}
+}
+
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "minc",
 		Short: "MicroShift in Container",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Set logger based on user-provided log level
+			log.SetLogger(viper.GetString("log-level"))
+			return nil
+		},
 	}
+
+	cobra.OnInitialize(initConfig)
+
 	// create command flags
-	createCmd.PersistentFlags().StringVarP(&uShiftVersion, "microshift-version", "m", constants.UShiftVersion,
+	createCmd.PersistentFlags().StringVarP(&uShiftVersion, "microshift-version", "m", "",
 		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
 
-	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd)
-	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "podman", "Specify the provider (e.g., podman, docker)")
-	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "Log level (e.g., info, debug, warn)")
+	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "", "Specify the provider (e.g., podman, docker)")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "Log level (e.g., info, debug, warn)")
 
-	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		log.SetLogger(logLevel) // Apply log level after parsing flags
-	}
+	// Add config subcommands
+	configCmd.AddCommand(configSetCmd, configGetCmd, configUnsetCmd, configViewCmd)
+
+	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd, configCmd)
+
+	// Binding with viper
+	viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider"))
+	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+	viper.BindPFlag("microshift-version", createCmd.PersistentFlags().Lookup("microshift-version"))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("Error executing command: ", err)
