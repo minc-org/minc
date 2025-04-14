@@ -29,6 +29,9 @@ Get the latest release from GitHub release page as per your platform.
 
 #### Linux
 
+In Linux, minc require sudo permission to run podman command because it is not working with rootless mode as of now.
+Check: https://github.com/minc-org/minc/issues/22
+
 ```bash
 curl -L -o minc  https://github.com/minc-org/minc/releases/latest/download/minc_linux_amd64
 chmod +x minc
@@ -60,6 +63,11 @@ minc delete
 ### Get help and options
 ```bash
 minc help
+```
+
+### Config options
+```bash
+minc config -h
 ```
 Once the container is running, you can interact with the MicroShift cluster using `kubectl` or `oc` tools.
 
