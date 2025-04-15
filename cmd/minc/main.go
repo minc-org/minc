@@ -16,15 +16,24 @@ var (
 	provider      string
 	logLevel      string
 	uShiftVersion string
+	uShiftConfig  string
 )
 
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
+		uShiftConf := viper.GetString("microshift-config")
+		if uShiftConf != "" {
+			_, err := os.Stat(uShiftConf)
+			if os.IsNotExist(err) {
+				log.Fatal("config file does not exist", "Config", uShiftConf)
+			}
+		}
 		cType := &types.CreateType{
 			Provider:      viper.GetString("provider"),
 			UShiftVersion: viper.GetString("microshift-version"),
+			UShiftConfig:  uShiftConf,
 		}
 		err := minc.Create(cType)
 		if err != nil {
@@ -118,6 +127,8 @@ func main() {
 	// create command flags
 	createCmd.PersistentFlags().StringVarP(&uShiftVersion, "microshift-version", "m", "",
 		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
+	createCmd.PersistentFlags().StringVarP(&uShiftConfig, "microshift-config", "c", "",
+		"MicroShift custom config file")
 
 	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "", "Specify the provider (e.g., podman, docker)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "Log level (e.g., info, debug, warn)")
@@ -131,6 +142,7 @@ func main() {
 	viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider"))
 	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
 	viper.BindPFlag("microshift-version", createCmd.PersistentFlags().Lookup("microshift-version"))
+	viper.BindPFlag("microshift-config", createCmd.PersistentFlags().Lookup("microshift-config"))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("Error executing command: ", err)

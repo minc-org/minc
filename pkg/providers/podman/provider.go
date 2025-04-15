@@ -59,7 +59,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	cmd := podmanCmd(providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion)))
+	cmd := podmanCmd(providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion), cType.UShiftConfig))
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err
