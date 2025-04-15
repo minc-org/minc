@@ -55,7 +55,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 		return err
 	}
 	cmd := exec.Command("docker",
-		providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion))...,
+		providers.RunOptions(constants.ContainerName, constants.GetUShiftImage(cType.UShiftVersion), cType.UShiftConfig)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {

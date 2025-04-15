@@ -5,8 +5,8 @@ import (
 	"github.com/minc-org/minc/pkg/constants"
 )
 
-func RunOptions(containerName, imageName string) []string {
-	return []string{
+func RunOptions(containerName, imageName, uShiftConfig string) []string {
+	runOptions := []string{
 		"run",
 		"--hostname", constants.HostName,
 		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, containerName),
@@ -16,8 +16,13 @@ func RunOptions(containerName, imageName string) []string {
 		"-p", "9080:80",
 		"-p", "9443:443",
 		"-p", "6443:6443",
-		"--name", containerName, imageName,
 	}
+	if uShiftConfig != "" {
+		runOptions = append(runOptions, "-v",
+			fmt.Sprintf("%s:/etc/microshift/config.d/00-custom-config.yaml:ro,rshared", uShiftConfig))
+	}
+	return append(runOptions,
+		"--name", containerName, imageName)
 }
 
 func PullOptions(imageName string) []string {
