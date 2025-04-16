@@ -32,3 +32,29 @@ jobs:
       - name: Run minp cluster
         run: |
           minc create cluster --log-level debug
+
+      - name: Install oc
+        shell: bash
+        run: |
+          if [ ${{ runner.arch }} = "X64" ]; then
+            OC_ARCH="amd64"
+            URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
+          else
+            OC_ARCH="arm64"
+            URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-${OC_ARCH}.tar.gz"
+          fi
+          FILENAME="openshift-client-linux-${OC_ARCH}.tar.gz"
+          echo "Downloading $URL"
+          curl -H user-agent:minc-ci -L "$URL" -o openshift-client-linux-${OC_ARCH}.tar.gz --max-time 300 --fail
+          tar -xzf "$FILENAME"
+          sudo mv oc kubectl /usr/bin/      
+
+      - name: Test the sample app
+        run: |
+          sudo podman build -t quay.io/praveenkumar/myserver:v1 https://github.com/praveenkumar/simple-go-server.git
+          oc apply -f https://raw.githubusercontent.com/praveenkumar/simple-go-server/refs/heads/main/kubernetes/deploy.yaml
+          oc get pods -n demo
+          oc wait --for=jsonpath='{.status.phase}'=Running pod/myserver -n demo
+          oc expose svc myserver -n demo
+          oc get routes -n demo
+          curl -Ik $(oc get route -n demo -ojsonpath='{.items[].spec.host}'):9080

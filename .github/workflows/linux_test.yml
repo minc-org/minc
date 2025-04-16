@@ -31,3 +31,4 @@ jobs:
 
       - name: Run minp cluster
         run: minc create cluster --provider docker --log-level debug
+
