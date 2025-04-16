@@ -69,6 +69,16 @@ minc help
 ```bash
 minc config -h
 ```
+
+### Available Config Settings
+| Parameter           | Description                                                                                                     |
+|---------------------|-----------------------------------------------------------------------------------------------------------------|
+| `microshift-config` | Custom MicroShift config file to change MicroShift defaults. [More info](https://github.com/openshift/microshift/blob/main/docs/user/howto_config.md) |
+| `microshift-version`| MicroShift version, check available tags at `quay.io/minc-org/minc`                                             |
+| `log-level`         | Log level (default: `info`)                                                                                     |
+| `provider`          | Container runtime provider, e.g., `docker`, `podman` (default: `podman`)                                        |
+
+
 Once the container is running, you can interact with the MicroShift cluster using `kubectl` or `oc` tools.
 
 ## Contributing
