@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/log"
@@ -52,6 +53,19 @@ var listCmd = &cobra.Command{
 			log.Fatal("error listing cluster", "err", err)
 		}
 		fmt.Printf("%s", ls)
+	},
+}
+
+var statusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Status of MicroShift cluster",
+	Run: func(cmd *cobra.Command, args []string) {
+		status := minc.Status(viper.GetString(provider))
+		jsonData, err := json.MarshalIndent(status, "", "  ")
+		if err != nil {
+			log.Fatal("error marshalling status", "err", err)
+		}
+		fmt.Println(string(jsonData))
 	},
 }
 
@@ -137,7 +151,7 @@ func main() {
 	// Add config subcommands
 	configCmd.AddCommand(configSetCmd, configGetCmd, configUnsetCmd, configViewCmd)
 
-	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd, configCmd)
+	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd, statusCmd, configCmd)
 
 	// Binding with viper
 	viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider"))
