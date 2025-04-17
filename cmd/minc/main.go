@@ -47,10 +47,11 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := minc.List(viper.GetString(provider))
+		ls, err := minc.List(viper.GetString(provider))
 		if err != nil {
 			log.Fatal("error listing cluster", "err", err)
 		}
+		fmt.Printf("%s", ls)
 	},
 }
 

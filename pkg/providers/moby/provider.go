@@ -109,22 +109,22 @@ func (p *provider) Delete() error {
 	return nil
 }
 
-func (p *provider) List() error {
+func (p *provider) List() ([]byte, error) {
+	var out []byte
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
-		return err
+		return out, err
 	}
 	cmd := exec.Command("docker",
 		providers.ListOptions(constants.ContainerName)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
-		return err
+		return out, err
 	}
 	if string(out) == "" {
-		return fmt.Errorf("no %s containers found, use 'create' command to create it", constants.ContainerName)
+		return out, fmt.Errorf("no %s containers found, use 'create' command to create it", constants.ContainerName)
 	}
-	fmt.Printf("%s", out)
-	return nil
+	return out, nil
 }
 
 func getProviderInfo() (*providers.ProviderInfo, error) {

@@ -12,7 +12,7 @@ type Provider interface {
 	WaitForMicroShiftService() error
 	GetKubeConfig() ([]byte, error)
 	Delete() error
-	List() error
+	List() ([]byte, error)
 }
 
 type ProviderInfo struct {
