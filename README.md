@@ -55,6 +55,26 @@ curl -L -o minc.exe  https://github.com/minc-org/minc/releases/latest/download/m
 minc create
 ```
 
+### Status of the cluster
+
+This command provide output in `json` format
+```bash
+minc status
+{
+  "container": "running",
+  "apiserver": "running"
+}
+```
+In case of error output would be look like below
+```bash
+minc status
+{
+  "container": "stopped",
+  "apiserver": "stopped",
+  "error": "no microshift containers found, use 'create' command to create it"
+}
+```
+
 ### Delete the cluster
 ```bash
 minc delete
