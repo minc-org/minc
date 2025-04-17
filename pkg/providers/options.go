@@ -13,9 +13,9 @@ func RunOptions(containerName, imageName, uShiftConfig string) []string {
 		"--detach",
 		"-it", "--privileged",
 		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
-		"-p", "9080:80",
-		"-p", "9443:443",
-		"-p", "6443:6443",
+		"-p", "127.0.0.1:9080:80",
+		"-p", "127.0.0.1:9443:443",
+		"-p", "127.0.0.1:6443:6443",
 	}
 	if uShiftConfig != "" {
 		runOptions = append(runOptions, "-v",
