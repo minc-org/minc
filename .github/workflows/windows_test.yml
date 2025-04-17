@@ -61,3 +61,26 @@ jobs:
 
       - name: Run minp cluster
         run: minc create cluster --log-level debug
+
+      - name: Install oc
+        shell: bash
+        run: |
+          URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-windows.zip"
+          FILENAME="openshift-client-windows.zip"
+          echo "Downloading $URL"
+          curl -H user-agent:minc-ci -L "$URL" -o "${FILENAME}" --max-time 300 --fail
+          unzip -u "$FILENAME"
+
+      - name: Put oc binary to bin folder
+        run: Copy-Item -Path oc.exe -Destination $env:USERPROFILE\go\bin\ -Recurse
+        shell: pwsh
+
+      - name: Test the sample app
+        run: |
+          podman build -t quay.io/praveenkumar/myserver:v1 https://github.com/praveenkumar/simple-go-server.git
+          oc apply -f https://raw.githubusercontent.com/praveenkumar/simple-go-server/refs/heads/main/kubernetes/deploy.yaml
+          oc get pods -n demo
+          oc wait --for=jsonpath='{.status.phase}'=Running pod/myserver -n demo
+          oc expose svc myserver -n demo
+          oc get routes -n demo
+          curl -Ik myserver-demo.apps.127.0.0.1.nip.io:9080
