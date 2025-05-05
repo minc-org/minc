@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 var (
@@ -18,6 +19,8 @@ var (
 	logLevel      string
 	uShiftVersion string
 	uShiftConfig  string
+	httpsPort     string
+	httpPort      string
 )
 
 var createCmd = &cobra.Command{
@@ -31,12 +34,23 @@ var createCmd = &cobra.Command{
 				log.Fatal("config file does not exist", "Config", uShiftConf)
 			}
 		}
+		hPort, err := strconv.Atoi(viper.GetString("http-port"))
+		if err != nil {
+			log.Fatal("http port must be an integer", "port", viper.GetString("http-port"))
+		}
+		hsPort, err := strconv.Atoi(viper.GetString("https-port"))
+		if err != nil {
+			log.Fatal("https port must be an integer", "port", viper.GetString("https-port"))
+		}
+
 		cType := &types.CreateType{
 			Provider:      viper.GetString("provider"),
 			UShiftVersion: viper.GetString("microshift-version"),
 			UShiftConfig:  uShiftConf,
+			HTTPSPort:     hsPort,
+			HTTPPort:      hPort,
 		}
-		err := minc.Create(cType)
+		err = minc.Create(cType)
 		if err != nil {
 			log.Fatal("error creating cluster", "err", err)
 		}
@@ -144,6 +158,10 @@ func main() {
 		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
 	createCmd.PersistentFlags().StringVarP(&uShiftConfig, "microshift-config", "c", "",
 		"MicroShift custom config file")
+	createCmd.PersistentFlags().StringVar(&httpsPort, "https-port", "9443",
+		"https route port to be exposed by container (default: 9443)")
+	createCmd.PersistentFlags().StringVar(&httpPort, "http-port", "9080",
+		"http route port to be exposed by container (default: 9080)")
 
 	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "", "Specify the provider (e.g., podman, docker)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "Log level (e.g., info, debug, warn)")
@@ -158,6 +176,8 @@ func main() {
 	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
 	viper.BindPFlag("microshift-version", createCmd.PersistentFlags().Lookup("microshift-version"))
 	viper.BindPFlag("microshift-config", createCmd.PersistentFlags().Lookup("microshift-config"))
+	viper.BindPFlag("https-port", createCmd.PersistentFlags().Lookup("https-port"))
+	viper.BindPFlag("http-port", createCmd.PersistentFlags().Lookup("http-port"))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("Error executing command: ", err)
