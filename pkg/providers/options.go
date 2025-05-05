@@ -5,24 +5,43 @@ import (
 	"github.com/minc-org/minc/pkg/constants"
 )
 
-func RunOptions(containerName, imageName, uShiftConfig string) []string {
+type ROptions struct {
+	ContainerName string
+	ImageName     string
+	UShiftConfig  string
+	HttpPort      int
+	HttpsPort     int
+}
+
+func RunOptions(r *ROptions) []string {
+	// in case http or https port is less than 1024 then macOS doesn't allow to bind with 127.0.0.1 so
+	// need to bind with all the interfaces
+	httpPortOption := "127.0.0.1:%d:80"
+	httpsPortOption := "127.0.0.1:%d:443"
+	if r.HttpPort < 1024 {
+		httpPortOption = "%d:80"
+	}
+	if r.HttpsPort < 1024 {
+		httpsPortOption = "%d:443"
+	}
 	runOptions := []string{
 		"run",
 		"--hostname", constants.HostName,
-		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, containerName),
+		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, r.ContainerName),
 		"--detach",
 		"-it", "--privileged",
 		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
-		"-p", "127.0.0.1:9080:80",
-		"-p", "127.0.0.1:9443:443",
+		"-p", fmt.Sprintf(httpPortOption, r.HttpPort),
+		"-p", fmt.Sprintf(httpsPortOption, r.HttpsPort),
 		"-p", "127.0.0.1:6443:6443",
 	}
-	if uShiftConfig != "" {
+	if r.UShiftConfig != "" {
 		runOptions = append(runOptions, "-v",
-			fmt.Sprintf("%s:/etc/microshift/config.d/00-custom-config.yaml:ro,rshared", uShiftConfig))
+			fmt.Sprintf("%s:/etc/microshift/config.d/00-custom-config.yaml:ro,rshared", r.UShiftConfig))
 	}
+
 	return append(runOptions,
-		"--name", containerName, imageName)
+		"--name", r.ContainerName, r.ImageName)
 }
 
 func PullOptions(imageName string) []string {

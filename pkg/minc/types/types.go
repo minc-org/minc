@@ -4,6 +4,8 @@ type CreateType struct {
 	Provider      string
 	UShiftVersion string
 	UShiftConfig  string
+	HTTPSPort     int
+	HTTPPort      int
 }
 
 type StatusType struct {
