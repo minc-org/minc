@@ -15,6 +15,7 @@ This approach facilitates a streamlined and efficient environment for developing
 
 - [Podman](https://podman.io/getting-started/installation) installed on your system.
 - Basic understanding of Kubernetes and containerization concepts.
+- `kubectl` or `oc` cli tool installed
 
 #### Windows
 
@@ -45,7 +46,7 @@ chmod +x minc
 
 #### Windows
 ```bash
-curl -L -o minc.exe  https://github.com/minc-org/minc/releases/latest/download/minc.exe
+curl.exe -L -o minc.exe  https://github.com/minc-org/minc/releases/latest/download/minc.exe
 ```
 
 ## Usage
