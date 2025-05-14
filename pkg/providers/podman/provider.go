@@ -59,7 +59,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	if _, err := p.List(); err != nil {
+	if out, _ := p.List(); len(out) == 0 {
 		cOptions := &providers.COptions{
 			ContainerName: constants.ContainerName,
 			ImageName:     constants.GetUShiftImage(cType.UShiftVersion),
@@ -131,8 +131,12 @@ func (p *provider) List() ([]byte, error) {
 	if err != nil {
 		return out, err
 	}
-	if string(out) == "" {
+	log.Debug(string(out))
+	if len(out) == 0 {
 		return out, fmt.Errorf("no %s containers found, use 'create' command to create it", constants.ContainerName)
+	}
+	if !strings.Contains(string(out), "running") {
+		return out, fmt.Errorf("%s container is not running, use 'create' command to run it", constants.ContainerName)
 	}
 	return out, nil
 }

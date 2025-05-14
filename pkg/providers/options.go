@@ -89,6 +89,6 @@ func ListOptions(containerName string) []string {
 		"ps",
 		"-a",
 		"-f", fmt.Sprintf("label=%s=%s", constants.LabelKey, containerName),
-		"--format", "{{.Names}} {{.Ports}}",
+		"--format", "{{.Names}} {{.Ports}} {{.State}}",
 	}
 }
