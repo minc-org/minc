@@ -30,5 +30,11 @@ jobs:
         run: make install
 
       - name: Run minp cluster
-        run: minc create cluster --provider docker --log-level debug
-
+        run: |
+          minc config set provider docker
+          minc create --log-level debug
+          minc status
+          docker stop microshift
+          minc status
+          minc create --log-level debug
+          minc status

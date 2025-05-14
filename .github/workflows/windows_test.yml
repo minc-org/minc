@@ -60,7 +60,12 @@ jobs:
         run: podman machine init --rootful --now
 
       - name: Run minp cluster
-        run: minc create cluster --log-level debug
+        run: |
+          minc create --log-level debug
+          podman stop microshift
+          minc status
+          minc create --log-level debug
+          minc status
 
       - name: Install oc
         shell: bash
