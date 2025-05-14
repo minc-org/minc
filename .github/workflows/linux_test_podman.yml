@@ -31,7 +31,12 @@ jobs:
 
       - name: Run minp cluster
         run: |
-          minc create cluster --log-level debug
+          minc create --log-level debug
+          minc status
+          sudo podman stop microshift
+          minc status
+          minc create
+          minc status
 
       - name: Install oc
         shell: bash
