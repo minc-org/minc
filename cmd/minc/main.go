@@ -62,7 +62,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		ls, err := minc.List(viper.GetString(provider))
+		ls, err := minc.List(viper.GetString("provider"))
 		if err != nil {
 			log.Fatal("error listing cluster", "err", err)
 		}
@@ -74,7 +74,7 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Status of MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		status := minc.Status(viper.GetString(provider))
+		status := minc.Status(viper.GetString("provider"))
 		jsonData, err := json.MarshalIndent(status, "", "  ")
 		if err != nil {
 			log.Fatal("error marshalling status", "err", err)
@@ -87,7 +87,7 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete the MicroShift cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := minc.Delete(provider)
+		err := minc.Delete(viper.GetString("provider"))
 		if err != nil {
 			log.Fatal("error deleting cluster", "err", err)
 		}
