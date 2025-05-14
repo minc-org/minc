@@ -59,14 +59,22 @@ func (p *provider) Create(cType *types.CreateType) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	rOptions := &providers.ROptions{
-		ContainerName: constants.ContainerName,
-		ImageName:     constants.GetUShiftImage(cType.UShiftVersion),
-		UShiftConfig:  cType.UShiftConfig,
-		HttpPort:      cType.HTTPPort,
-		HttpsPort:     cType.HTTPSPort,
+	if _, err := p.List(); err != nil {
+		cOptions := &providers.COptions{
+			ContainerName: constants.ContainerName,
+			ImageName:     constants.GetUShiftImage(cType.UShiftVersion),
+			UShiftConfig:  cType.UShiftConfig,
+			HttpPort:      cType.HTTPPort,
+			HttpsPort:     cType.HTTPSPort,
+		}
+		cmd := podmanCmd(providers.CreateOptions(cOptions))
+		out, err := exec.Output(cmd)
+		if err != nil {
+			return err
+		}
+		log.Debug(string(out))
 	}
-	cmd := podmanCmd(providers.RunOptions(rOptions))
+	cmd := podmanCmd(providers.StartOptions(constants.ContainerName))
 	out, err := exec.Output(cmd)
 	if err != nil {
 		return err

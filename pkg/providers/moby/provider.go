@@ -54,15 +54,25 @@ func (p *provider) Create(cType *types.CreateType) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
 	}
-	rOptions := &providers.ROptions{
-		ContainerName: constants.ContainerName,
-		ImageName:     constants.GetUShiftImage(cType.UShiftVersion),
-		UShiftConfig:  cType.UShiftConfig,
-		HttpPort:      cType.HTTPPort,
-		HttpsPort:     cType.HTTPSPort,
+	if _, err := p.List(); err != nil {
+		cOptions := &providers.COptions{
+			ContainerName: constants.ContainerName,
+			ImageName:     constants.GetUShiftImage(cType.UShiftVersion),
+			UShiftConfig:  cType.UShiftConfig,
+			HttpPort:      cType.HTTPPort,
+			HttpsPort:     cType.HTTPSPort,
+		}
+		cmd := exec.Command("docker",
+			providers.CreateOptions(cOptions)...,
+		)
+		out, err := exec.Output(cmd)
+		if err != nil {
+			return err
+		}
+		log.Debug(string(out))
 	}
 	cmd := exec.Command("docker",
-		providers.RunOptions(rOptions)...,
+		providers.StartOptions(constants.ContainerName)...,
 	)
 	out, err := exec.Output(cmd)
 	if err != nil {
