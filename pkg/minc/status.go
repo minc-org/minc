@@ -4,6 +4,7 @@ import (
 	"github.com/minc-org/minc/pkg/cluster"
 	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/minc-org/minc/pkg/providers/register"
+	"strings"
 )
 
 func Status(provider string) *types.StatusType {
@@ -16,11 +17,14 @@ func Status(provider string) *types.StatusType {
 		status.Error = err.Error()
 		return &status
 	}
-	if _, err := p.List(); err != nil {
+	out, err := p.List()
+	if err != nil {
 		status.Error = err.Error()
 		return &status
 	}
-	status.Container = "running"
+	if strings.Contains(string(out), "running") {
+		status.Container = "running"
+	}
 	config, err := p.GetKubeConfig()
 	if err != nil {
 		status.Error = err.Error()
