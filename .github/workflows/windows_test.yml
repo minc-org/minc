@@ -80,6 +80,15 @@ jobs:
         run: Copy-Item -Path oc.exe -Destination $env:USERPROFILE\go\bin\ -Recurse
         shell: pwsh
 
+      - name: Test if generate kubeconfig works as expected
+        shell: bash
+        run: |
+          oc config get-contexts
+          oc config delete-context microshift
+          minc generate-kubeconfig
+          oc config get-contexts
+          oc get pods -A
+
       - name: Test the sample app
         run: |
           podman build -t quay.io/praveenkumar/myserver:v1 https://github.com/praveenkumar/simple-go-server.git
