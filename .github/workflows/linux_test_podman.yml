@@ -52,7 +52,16 @@ jobs:
           echo "Downloading $URL"
           curl -H user-agent:minc-ci -L "$URL" -o openshift-client-linux-${OC_ARCH}.tar.gz --max-time 300 --fail
           tar -xzf "$FILENAME"
-          sudo mv oc kubectl /usr/bin/      
+          sudo mv oc kubectl /usr/bin/
+
+      - name : Test if generate kubeconfig works as expected
+        shell: bash
+        run: |
+          oc config get-contexts
+          oc config delete-context microshift
+          minc generate-kubeconfig
+          oc config get-contexts
+          oc get pods -A
 
       - name: Test the sample app
         run: |
