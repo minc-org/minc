@@ -81,6 +81,11 @@ minc status
 minc delete
 ```
 
+### Regenerate kubeconfig file for cluster
+```bash
+minc generate-kubeconfig
+```
+
 ### Get help and options
 ```bash
 minc help

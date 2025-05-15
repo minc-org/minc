@@ -95,6 +95,18 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var generateKubeConfig = &cobra.Command{
+	Use:   "generate-kubeconfig",
+	Short: "generate the kubeconfig for MicroShift cluster",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := minc.GenerateKubeConfig(viper.GetString("provider"))
+		if err != nil {
+			log.Fatal("error generating kubeconfig file", "err", err)
+		}
+		fmt.Println("kubeconfig generated and context is added to default config")
+	},
+}
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show the version of minc",
@@ -169,7 +181,7 @@ func main() {
 	// Add config subcommands
 	configCmd.AddCommand(configSetCmd, configGetCmd, configUnsetCmd, configViewCmd)
 
-	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd, statusCmd, configCmd)
+	rootCmd.AddCommand(createCmd, listCmd, deleteCmd, versionCmd, statusCmd, generateKubeConfig, configCmd)
 
 	// Binding with viper
 	viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider"))
