@@ -56,6 +56,7 @@ cross: $(BUILD_DIR)/macos-amd64/minc_darwin_amd64 $(BUILD_DIR)/macos-arm64/minc_
 release: cross
 	mkdir -p $(BUILD_DIR)/release
 	cp $(BUILD_DIR)/macos-amd64/minc_darwin_amd64 $(BUILD_DIR)/macos-arm64/minc_darwin_arm64 $(BUILD_DIR)/linux-amd64/minc_linux_amd64 $(BUILD_DIR)/linux-arm64/minc_linux_arm64 $(BUILD_DIR)/windows-amd64/minc.exe $(BUILD_DIR)/release
+	pushd $(BUILD_DIR)/release && sha256sum * > sha256sum.txt && popd
 
 .PHONY: clean ## Remove all build artifacts
 clean:
