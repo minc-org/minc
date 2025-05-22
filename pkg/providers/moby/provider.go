@@ -36,9 +36,23 @@ func (p *provider) Info() (*providers.ProviderInfo, error) {
 	return getProviderInfo()
 }
 
+func (p *provider) ImageExists(image string) bool {
+	cmd := exec.Command("docker",
+		providers.ImageExistOptions(image)...,
+	)
+	_, err := exec.Output(cmd)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func (p *provider) PullImage(image string) error {
 	if err := checkCGroupsAndRootFulMode(p.info); err != nil {
 		return err
+	}
+	if p.ImageExists(image) {
+		return nil
 	}
 	cmd := exec.Command("docker",
 		providers.PullOptions(image)...,
