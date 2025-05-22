@@ -7,6 +7,7 @@ import (
 type Provider interface {
 	Name() string
 	Info() (*ProviderInfo, error)
+	ImageExists(string) bool
 	PullImage(image string) error
 	Create(cType *types.CreateType) error
 	WaitForMicroShiftService() error

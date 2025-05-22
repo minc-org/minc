@@ -57,6 +57,14 @@ func PullOptions(imageName string) []string {
 	}
 }
 
+func ImageExistOptions(imageName string) []string {
+	return []string{
+		"image",
+		"inspect",
+		imageName,
+	}
+}
+
 func ServiceWaitOption(service, containerName string) []string {
 	return []string{
 		"exec",
