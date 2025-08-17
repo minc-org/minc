@@ -23,6 +23,9 @@ func GetImageRegistry() string {
 	return fmt.Sprintf("%s/%s/%s", Registry, RegistryOrg, ImageName)
 }
 
-func GetUShiftImage(version string) string {
+func GetUShiftImage(image, version string) string {
+	if image != "" {
+		return fmt.Sprintf("%s:%s-%s", image, version, runtime.GOARCH)
+	}
 	return fmt.Sprintf("%s:%s-%s", GetImageRegistry(), version, runtime.GOARCH)
 }

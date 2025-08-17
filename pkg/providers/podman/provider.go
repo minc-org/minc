@@ -3,12 +3,13 @@ package podman
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/minc-org/minc/pkg/minc/types"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/minc-org/minc/pkg/minc/types"
 
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/exec"
@@ -74,7 +75,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 	if out, _ := p.List(); len(out) == 0 {
 		cOptions := &providers.COptions{
 			ContainerName: constants.ContainerName,
-			ImageName:     constants.GetUShiftImage(cType.UShiftVersion),
+			ImageName:     constants.GetUShiftImage(cType.UShiftImage, cType.UShiftVersion),
 			UShiftConfig:  cType.UShiftConfig,
 			HttpPort:      cType.HTTPPort,
 			HttpsPort:     cType.HTTPSPort,
