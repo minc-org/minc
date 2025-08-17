@@ -3,15 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"path/filepath"
-	"strconv"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 	uShiftConfig  string
 	httpsPort     string
 	httpPort      string
+	uShiftImage   string
 )
 
 var createCmd = &cobra.Command{
@@ -46,6 +48,7 @@ var createCmd = &cobra.Command{
 		cType := &types.CreateType{
 			Provider:      viper.GetString("provider"),
 			UShiftVersion: viper.GetString("microshift-version"),
+			UShiftImage:   viper.GetString("microshift-image"),
 			UShiftConfig:  uShiftConf,
 			HTTPSPort:     hsPort,
 			HTTPPort:      hPort,
@@ -168,6 +171,8 @@ func main() {
 	// create command flags
 	createCmd.PersistentFlags().StringVarP(&uShiftVersion, "microshift-version", "m", "",
 		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
+	createCmd.PersistentFlags().StringVarP(&uShiftImage, "microshift-image", "i", "",
+		"MicroShift image to use if default image registry is not to be used")
 	createCmd.PersistentFlags().StringVarP(&uShiftConfig, "microshift-config", "c", "",
 		"MicroShift custom config file")
 	createCmd.PersistentFlags().StringVar(&httpsPort, "https-port", "9443",
@@ -187,6 +192,7 @@ func main() {
 	viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider"))
 	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
 	viper.BindPFlag("microshift-version", createCmd.PersistentFlags().Lookup("microshift-version"))
+	viper.BindPFlag("microshift-image", createCmd.PersistentFlags().Lookup("microshift-image"))
 	viper.BindPFlag("microshift-config", createCmd.PersistentFlags().Lookup("microshift-config"))
 	viper.BindPFlag("https-port", createCmd.PersistentFlags().Lookup("https-port"))
 	viper.BindPFlag("http-port", createCmd.PersistentFlags().Lookup("http-port"))

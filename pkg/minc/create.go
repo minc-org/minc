@@ -2,6 +2,8 @@ package minc
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/minc-org/minc/pkg/cluster"
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/kubeconfig"
@@ -9,7 +11,6 @@ import (
 	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/minc-org/minc/pkg/providers/register"
 	"github.com/minc-org/minc/pkg/spinner"
-	"time"
 )
 
 func Create(cType *types.CreateType) error {
@@ -18,7 +19,7 @@ func Create(cType *types.CreateType) error {
 		return err
 	}
 	log.Debug("Provider Info", "Provider", p)
-	img := constants.GetUShiftImage(cType.UShiftVersion)
+	img := constants.GetUShiftImage(cType.UShiftImage, cType.UShiftVersion)
 	log.Info(fmt.Sprintf("Ensuring cluster image (%s) ...", img))
 	s := spinner.New(time.Second)
 	s.Start()
