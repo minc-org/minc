@@ -2,15 +2,17 @@ package providers
 
 import (
 	"fmt"
+
 	"github.com/minc-org/minc/pkg/constants"
 )
 
 type COptions struct {
-	ContainerName string
-	ImageName     string
-	UShiftConfig  string
-	HttpPort      int
-	HttpsPort     int
+	ContainerName    string
+	ImageName        string
+	UShiftConfig     string
+	UShiftPullSecret string
+	HttpPort         int
+	HttpsPort        int
 }
 
 func CreateOptions(r *COptions) []string {
@@ -37,6 +39,11 @@ func CreateOptions(r *COptions) []string {
 	if r.UShiftConfig != "" {
 		createOptions = append(createOptions, "-v",
 			fmt.Sprintf("%s:/etc/microshift/config.d/00-custom-config.yaml:ro,rshared", r.UShiftConfig))
+	}
+
+	if r.UShiftPullSecret != "" {
+		createOptions = append(createOptions, "-v",
+			fmt.Sprintf("%s:/etc/crio/openshift-pull-secret:ro,rshared", r.UShiftPullSecret))
 	}
 
 	return append(createOptions,

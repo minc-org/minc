@@ -1,11 +1,12 @@
 package types
 
 type CreateType struct {
-	Provider      string
-	UShiftVersion string
-	UShiftConfig  string
-	HTTPSPort     int
-	HTTPPort      int
+	Provider         string
+	UShiftVersion    string
+	UShiftConfig     string
+	UShiftPullSecret string
+	HTTPSPort        int
+	HTTPPort         int
 }
 
 type StatusType struct {

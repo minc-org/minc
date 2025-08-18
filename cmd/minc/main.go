@@ -3,24 +3,26 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"path/filepath"
-	"strconv"
 )
 
 var (
-	provider      string
-	logLevel      string
-	uShiftVersion string
-	uShiftConfig  string
-	httpsPort     string
-	httpPort      string
+	provider         string
+	logLevel         string
+	uShiftVersion    string
+	uShiftConfig     string
+	uShiftPullSecret string
+	httpsPort        string
+	httpPort         string
 )
 
 var createCmd = &cobra.Command{
@@ -44,11 +46,12 @@ var createCmd = &cobra.Command{
 		}
 
 		cType := &types.CreateType{
-			Provider:      viper.GetString("provider"),
-			UShiftVersion: viper.GetString("microshift-version"),
-			UShiftConfig:  uShiftConf,
-			HTTPSPort:     hsPort,
-			HTTPPort:      hPort,
+			Provider:         viper.GetString("provider"),
+			UShiftVersion:    viper.GetString("microshift-version"),
+			UShiftConfig:     uShiftConf,
+			UShiftPullSecret: viper.GetString("microshift-pull-secret"),
+			HTTPSPort:        hsPort,
+			HTTPPort:         hPort,
 		}
 		err = minc.Create(cType)
 		if err != nil {
@@ -170,6 +173,8 @@ func main() {
 		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
 	createCmd.PersistentFlags().StringVarP(&uShiftConfig, "microshift-config", "c", "",
 		"MicroShift custom config file")
+	createCmd.PersistentFlags().StringVarP(&uShiftPullSecret, "microshift-pull-secret", "s", "",
+		"Path to local pull secret file. This secret can be downloaded from https://console.redhat.com/openshift/install/pull-secret")
 	createCmd.PersistentFlags().StringVar(&httpsPort, "https-port", "9443",
 		"https route port to be exposed by container (default: 9443)")
 	createCmd.PersistentFlags().StringVar(&httpPort, "http-port", "9080",
