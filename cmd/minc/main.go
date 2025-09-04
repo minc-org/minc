@@ -3,15 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+
 	"github.com/minc-org/minc/pkg/constants"
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/minc-org/minc/pkg/minc/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"path/filepath"
-	"strconv"
 )
 
 var (
@@ -141,10 +142,13 @@ func initConfig() {
 	}
 
 	viper.SetConfigFile(configFilePath)
-	// Set defaults
-	viper.SetDefault("provider", "podman")
-	viper.SetDefault("log-level", "info")
-	viper.SetDefault("microshift-version", constants.UShiftVersion)
+	// Set defaults from shared config
+	for key, value := range defaultConfig {
+		// Only set viper defaults for non-flag values (flags set their own defaults)
+		if key != "https-port" && key != "http-port" {
+			viper.SetDefault(key, value)
+		}
+	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Error reading config file", err)
@@ -170,10 +174,10 @@ func main() {
 		fmt.Sprintf("MicroShift version to use, check available tag %s", constants.GetImageRegistry()))
 	createCmd.PersistentFlags().StringVarP(&uShiftConfig, "microshift-config", "c", "",
 		"MicroShift custom config file")
-	createCmd.PersistentFlags().StringVar(&httpsPort, "https-port", "9443",
-		"https route port to be exposed by container (default: 9443)")
-	createCmd.PersistentFlags().StringVar(&httpPort, "http-port", "9080",
-		"http route port to be exposed by container (default: 9080)")
+	createCmd.PersistentFlags().StringVar(&httpsPort, "https-port", defaultConfig["https-port"].(string),
+		fmt.Sprintf("https route port to be exposed by container (default: %s)", defaultConfig["https-port"]))
+	createCmd.PersistentFlags().StringVar(&httpPort, "http-port", defaultConfig["http-port"].(string),
+		fmt.Sprintf("http route port to be exposed by container (default: %s)", defaultConfig["http-port"]))
 
 	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "", "Specify the provider (e.g., podman, docker)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "Log level (e.g., info, debug, warn)")
