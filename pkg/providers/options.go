@@ -2,6 +2,7 @@ package providers
 
 import (
 	"fmt"
+
 	"github.com/minc-org/minc/pkg/constants"
 )
 
@@ -11,6 +12,7 @@ type COptions struct {
 	UShiftConfig  string
 	HttpPort      int
 	HttpsPort     int
+	VolumeOption  string
 }
 
 func CreateOptions(r *COptions) []string {
@@ -29,7 +31,7 @@ func CreateOptions(r *COptions) []string {
 		"--hostname", constants.HostName,
 		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, r.ContainerName),
 		"-it", "--privileged",
-		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
+		"-v", r.VolumeOption,
 		"-p", fmt.Sprintf(httpPortOption, r.HttpPort),
 		"-p", fmt.Sprintf(httpsPortOption, r.HttpsPort),
 		"-p", "127.0.0.1:6443:6443",

@@ -77,6 +77,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 			UShiftConfig:  cType.UShiftConfig,
 			HttpPort:      cType.HTTPPort,
 			HttpsPort:     cType.HTTPSPort,
+			VolumeOption:  "/var/lib/docker:/host-container:rw,rshared",
 		}
 		cmd := exec.Command("docker",
 			providers.CreateOptions(cOptions)...,

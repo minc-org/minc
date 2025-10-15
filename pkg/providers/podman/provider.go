@@ -79,6 +79,7 @@ func (p *provider) Create(cType *types.CreateType) error {
 			UShiftConfig:  cType.UShiftConfig,
 			HttpPort:      cType.HTTPPort,
 			HttpsPort:     cType.HTTPSPort,
+			VolumeOption:  "/var/lib/containers/storage:/host-container:ro,rshared",
 		}
 		cmd := podmanCmd(providers.CreateOptions(cOptions))
 		out, err := exec.Output(cmd)
