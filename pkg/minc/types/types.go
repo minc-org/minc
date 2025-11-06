@@ -1,12 +1,13 @@
 package types
 
 type CreateType struct {
-	Provider      string
-	UShiftVersion string
-	UShiftImage   string
-	UShiftConfig  string
-	HTTPSPort     int
-	HTTPPort      int
+	Provider            string
+	UShiftVersion       string
+	UShiftImage         string
+	UShiftConfig        string
+	HTTPSPort           int
+	HTTPPort            int
+	DisableOverlayCache bool
 }
 
 type StatusType struct {
