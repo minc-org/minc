@@ -74,11 +74,12 @@ func (p *provider) Create(cType *types.CreateType) error {
 	}
 	if out, _ := p.List(); len(out) == 0 {
 		cOptions := &providers.COptions{
-			ContainerName: constants.ContainerName,
-			ImageName:     constants.GetUShiftImage(cType.UShiftImage, cType.UShiftVersion),
-			UShiftConfig:  cType.UShiftConfig,
-			HttpPort:      cType.HTTPPort,
-			HttpsPort:     cType.HTTPSPort,
+			ContainerName:       constants.ContainerName,
+			ImageName:           constants.GetUShiftImage(cType.UShiftImage, cType.UShiftVersion),
+			UShiftConfig:        cType.UShiftConfig,
+			HttpPort:            cType.HTTPPort,
+			HttpsPort:           cType.HTTPSPort,
+			DisableOverlayCache: cType.DisableOverlayCache,
 		}
 		cmd := podmanCmd(providers.CreateOptions(cOptions))
 		out, err := exec.Output(cmd)

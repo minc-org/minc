@@ -6,11 +6,12 @@ import (
 )
 
 type COptions struct {
-	ContainerName string
-	ImageName     string
-	UShiftConfig  string
-	HttpPort      int
-	HttpsPort     int
+	ContainerName       string
+	ImageName           string
+	UShiftConfig        string
+	HttpPort            int
+	HttpsPort           int
+	DisableOverlayCache bool
 }
 
 func CreateOptions(r *COptions) []string {
@@ -29,11 +30,23 @@ func CreateOptions(r *COptions) []string {
 		"--hostname", constants.HostName,
 		"--label", fmt.Sprintf("%s=%s", constants.LabelKey, r.ContainerName),
 		"-it", "--privileged",
-		"-v", "/var/lib/containers/storage:/host-container:ro,rshared",
 		"-p", fmt.Sprintf(httpPortOption, r.HttpPort),
 		"-p", fmt.Sprintf(httpsPortOption, r.HttpsPort),
 		"-p", "127.0.0.1:6443:6443",
 	}
+	
+	// Handle overlay cache mount
+	if !r.DisableOverlayCache {
+		// Use host bind mount (default behavior for Linux)
+		createOptions = append(createOptions, "-v", "/var/lib/containers/storage:/host-container:ro,rshared")
+	} else {
+		// Use named volume for better macOS/Docker compatibility
+		// This allows CRI-O to function without accessing host storage
+		// Note: Named volumes don't support bind options like 'rshared'
+		createOptions = append(createOptions, "-v", "minc-container-storage:/host-container")
+	}
+	
+	// Mount custom MicroShift config if provided
 	if r.UShiftConfig != "" {
 		createOptions = append(createOptions, "-v",
 			fmt.Sprintf("%s:/etc/microshift/config.d/00-custom-config.yaml:ro,rshared", r.UShiftConfig))

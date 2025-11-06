@@ -16,13 +16,14 @@ import (
 )
 
 var (
-	provider      string
-	logLevel      string
-	uShiftVersion string
-	uShiftConfig  string
-	httpsPort     string
-	httpPort      string
-	uShiftImage   string
+	provider            string
+	logLevel            string
+	uShiftVersion       string
+	uShiftConfig        string
+	httpsPort           string
+	httpPort            string
+	uShiftImage         string
+	disableOverlayCache bool
 )
 
 var createCmd = &cobra.Command{
@@ -46,12 +47,13 @@ var createCmd = &cobra.Command{
 		}
 
 		cType := &types.CreateType{
-			Provider:      viper.GetString("provider"),
-			UShiftVersion: viper.GetString("microshift-version"),
-			UShiftImage:   viper.GetString("microshift-image"),
-			UShiftConfig:  uShiftConf,
-			HTTPSPort:     hsPort,
-			HTTPPort:      hPort,
+			Provider:            viper.GetString("provider"),
+			UShiftVersion:       viper.GetString("microshift-version"),
+			UShiftImage:         viper.GetString("microshift-image"),
+			UShiftConfig:        uShiftConf,
+			HTTPSPort:           hsPort,
+			HTTPPort:            hPort,
+			DisableOverlayCache: viper.GetBool("disable-overlay-cache"),
 		}
 		err = minc.Create(cType)
 		if err != nil {
@@ -147,7 +149,7 @@ func initConfig() {
 	// Set defaults from shared config
 	for key, value := range defaultConfig {
 		// Only set viper defaults for non-flag values (flags set their own defaults)
-		if key != "https-port" && key != "http-port" {
+		if key != "https-port" && key != "http-port" && key != "disable-overlay-cache" {
 			viper.SetDefault(key, value)
 		}
 	}
@@ -182,6 +184,8 @@ func main() {
 		fmt.Sprintf("https route port to be exposed by container (default: %s)", defaultConfig["https-port"]))
 	createCmd.PersistentFlags().StringVar(&httpPort, "http-port", defaultConfig["http-port"].(string),
 		fmt.Sprintf("http route port to be exposed by container (default: %s)", defaultConfig["http-port"]))
+	createCmd.PersistentFlags().BoolVar(&disableOverlayCache, "disable-overlay-cache", defaultConfig["disable-overlay-cache"].(bool),
+		"Disable container overlay storage cache mount for better isolation and macOS Docker compatibility")
 
 	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "", "Specify the provider (e.g., podman, docker)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "Log level (e.g., info, debug, warn)")
@@ -199,6 +203,7 @@ func main() {
 	viper.BindPFlag("microshift-config", createCmd.PersistentFlags().Lookup("microshift-config"))
 	viper.BindPFlag("https-port", createCmd.PersistentFlags().Lookup("https-port"))
 	viper.BindPFlag("http-port", createCmd.PersistentFlags().Lookup("http-port"))
+	viper.BindPFlag("disable-overlay-cache", createCmd.PersistentFlags().Lookup("disable-overlay-cache"))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("Error executing command: ", err)

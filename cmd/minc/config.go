@@ -17,12 +17,13 @@ var configCmd = &cobra.Command{
 
 // defaultConfig holds all the default configuration values
 var defaultConfig = map[string]interface{}{
-	"provider":           "podman",
-	"log-level":          "info",
-	"microshift-version": constants.UShiftVersion,
-	"https-port":         "9443",
-	"http-port":          "9080",
-	"microshift-config":  "",
+	"provider":              "podman",
+	"log-level":             "info",
+	"microshift-version":    constants.UShiftVersion,
+	"https-port":            "9443",
+	"http-port":             "9080",
+	"microshift-config":     "",
+	"disable-overlay-cache": false,
 }
 
 // getDefaults returns the default configuration values
