@@ -34,19 +34,19 @@ In Linux, minc require sudo permission to run podman command because it is not w
 Check: https://github.com/minc-org/minc/issues/22
 
 ```bash
-curl -L -o minc  https://github.com/minc-org/minc/releases/latest/download/minc_linux_amd64
+curl -LsSf -o minc https://github.com/minc-org/minc/releases/latest/download/minc_linux_amd64
 chmod +x minc
 ```
 
 #### Mac
 ```bash
-curl -L -o minc  https://github.com/minc-org/minc/releases/latest/download/minc_darwin_arm64
+curl -LsSf -o minc https://github.com/minc-org/minc/releases/latest/download/minc_darwin_arm64
 chmod +x minc
 ```
 
 #### Windows
 ```bash
-curl.exe -L -o minc.exe  https://github.com/minc-org/minc/releases/latest/download/minc.exe
+curl.exe -LsSf -o minc.exe https://github.com/minc-org/minc/releases/latest/download/minc.exe
 ```
 
 ## Usage
