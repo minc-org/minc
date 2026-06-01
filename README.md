@@ -30,13 +30,13 @@ Get the latest release from GitHub release page as per your platform.
 
 #### Linux
 
-In Linux, minc require sudo permission to run podman command because it is not working with rootless mode as of now.
-Check: https://github.com/minc-org/minc/issues/22
-
 ```bash
 curl -L -o minc  https://github.com/minc-org/minc/releases/latest/download/minc_linux_amd64
 chmod +x minc
 ```
+
+By default, minc requires sudo to run Podman commands. To run without
+sudo, see [Rootless Mode (Linux)](#rootless-mode-linux) below.
 
 #### Mac
 ```bash
@@ -104,10 +104,77 @@ minc config -h
 | `log-level`          | Log level (default: `info`)                                                                                                                           |
 | `provider`           | Container runtime provider, e.g., `docker`, `podman` (default: `podman`)                                                                              |
 | `https-port`         | Different port to use for exposing https service (default:`9443`)                                                                                     |
-| `http-port`          | Different port to use for exposing https service (default:`9080`)                                                                                     |
+| `http-port`          | Different port to use for exposing http service (default:`9080`)                                                                                      |
+| `allow-rootless`     | Use rootless Podman without sudo (default: `false`). See [Rootless Mode](#rootless-mode-linux)                                                        |
+| `disable-overlay-cache` | Disable container overlay storage cache mount (default: `false`)                                                                                  |
 
 
 Once the container is running, you can interact with the MicroShift cluster using `kubectl` or `oc` tools.
+
+## Rootless Mode (Linux)
+
+Minc can run without sudo using rootless Podman. This is experimental and
+requires a one-time host setup.
+
+### Host Prerequisites
+
+Steps 1-3 require root/sudo. All settings persist across reboots.
+
+**1. Kernel parameters (sysctl):**
+```bash
+sudo tee /etc/sysctl.d/99-minc-rootless.conf <<'EOF'
+net.ipv4.ip_forward = 1
+net.ipv4.ip_unprivileged_port_start = 80
+fs.inotify.max_user_instances = 1024
+EOF
+sudo sysctl --system
+```
+
+- `ip_forward` - required for container networking (packet forwarding)
+- `ip_unprivileged_port_start = 80` - allows rootless Podman to bind HTTP/HTTPS ports
+- `max_user_instances = 1024` - increases inotify watch limit for MicroShift services
+
+**2. Load `ip_tables` kernel module:**
+```bash
+sudo tee /etc/modules-load.d/minc-rootless.conf <<'EOF'
+ip_tables
+EOF
+sudo modprobe ip_tables
+```
+
+**3. Delegate cgroup controllers to user sessions:**
+```bash
+sudo mkdir -p /etc/systemd/system/user@.service.d/
+sudo tee /etc/systemd/system/user@.service.d/delegate.conf <<'EOF'
+[Service]
+Delegate=cpuset cpu io memory pids
+EOF
+sudo systemctl daemon-reload
+```
+
+**4. Expand subordinate UID/GID ranges** (required for OpenShift SCC UIDs):
+```bash
+sudo usermod --add-subuids 165536-1265535999 --add-subgids 165536-1265535999 $(whoami)
+```
+
+Then, as your regular user (not root), migrate Podman to pick up the new ranges:
+```bash
+podman system migrate
+```
+
+### Rootless Usage
+
+```bash
+# Create a rootless cluster:
+minc create --allow-rootless
+
+# Or set it persistently via config:
+minc config set allow-rootless true
+minc create
+
+# Delete (auto-detects rootless mode):
+minc delete
+```
 
 ## Contributing
 

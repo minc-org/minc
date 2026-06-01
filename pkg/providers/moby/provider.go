@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/minc-org/minc/pkg/minc/types"
 
@@ -115,7 +114,7 @@ func (p *provider) WaitForMicroShiftService() error {
 		log.Debug(string(out))
 		return nil
 	}
-	return retry.Retry(cmdFunc, 15, 2*time.Second)
+	return retry.Retry(cmdFunc, providers.MicroShiftServiceMaxRetries, providers.MicroShiftServiceInitialRetryDelay)
 }
 
 func (p *provider) GetKubeConfig() ([]byte, error) {

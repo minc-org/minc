@@ -1,0 +1,101 @@
+name: Linux Test Rootless Podman
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23
+
+      - name: Build binary
+        run: make install
+
+      - name: Apply rootless host prerequisites
+        run: |
+          sudo sysctl -w net.ipv4.ip_forward=1
+          sudo sysctl -w net.ipv4.ip_unprivileged_port_start=80
+          sudo sysctl -w fs.inotify.max_user_instances=1024
+          sudo modprobe ip_tables
+          sudo mkdir -p /etc/systemd/system/user@.service.d/
+          cat <<'EOF' | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
+          [Service]
+          Delegate=cpuset cpu io memory pids
+          EOF
+          sudo systemctl daemon-reload
+          # Replace existing subuid/subgid entry to avoid overlapping ranges
+          # which cause newuidmap to fail with EINVAL
+          sudo sed -i "/^$(whoami):/d" /etc/subuid /etc/subgid
+          echo "$(whoami):100000:1100000000" | sudo tee -a /etc/subuid
+          echo "$(whoami):100000:1100000000" | sudo tee -a /etc/subgid
+          podman system migrate
+
+      - name: Run rootless cluster
+        run: |
+          minc create --allow-rootless --log-level debug
+          minc status
+
+      - name: Test stop and recreate
+        run: |
+          podman stop microshift
+          minc status
+          minc create --allow-rootless
+          minc status
+
+      - name: Install oc
+        shell: bash
+        run: |
+          if [ ${{ runner.arch }} = "X64" ]; then
+            OC_ARCH="amd64"
+            URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
+          else
+            OC_ARCH="arm64"
+            URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-${OC_ARCH}.tar.gz"
+          fi
+          FILENAME="openshift-client-linux-${OC_ARCH}.tar.gz"
+          echo "Downloading $URL"
+          curl -H user-agent:minc-ci -L "$URL" -o openshift-client-linux-${OC_ARCH}.tar.gz --max-time 300 --fail
+          tar -xzf "$FILENAME"
+          sudo mv oc kubectl /usr/bin/
+
+      - name: Test if generate kubeconfig works as expected
+        shell: bash
+        run: |
+          oc config get-contexts
+          oc config delete-context microshift
+          minc generate-kubeconfig
+          oc config get-contexts
+          oc get pods -A
+
+      - name: Test the sample app
+        run: |
+          podman build -t quay.io/praveenkumar/myserver:v1 https://github.com/praveenkumar/simple-go-server.git
+          oc apply -f https://raw.githubusercontent.com/praveenkumar/simple-go-server/refs/heads/main/kubernetes/deploy.yaml
+          oc get pods -n demo
+          oc wait --for=jsonpath='{.status.phase}'=Running pod/myserver -n demo
+          oc expose svc myserver -n demo
+          oc get routes -n demo
+          curl -Ik $(oc get route -n demo -ojsonpath='{.items[].spec.host}'):9080
+
+      - name: Delete cluster
+        run: |
+          minc delete
+          minc status

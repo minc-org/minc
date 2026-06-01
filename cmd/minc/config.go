@@ -24,6 +24,7 @@ var defaultConfig = map[string]interface{}{
 	"http-port":             "9080",
 	"microshift-config":     "",
 	"disable-overlay-cache": false,
+	"allow-rootless":        false,
 }
 
 // getDefaults returns the default configuration values
