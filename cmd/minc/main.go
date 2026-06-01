@@ -11,6 +11,7 @@ import (
 	"github.com/minc-org/minc/pkg/log"
 	"github.com/minc-org/minc/pkg/minc"
 	"github.com/minc-org/minc/pkg/minc/types"
+	"github.com/minc-org/minc/pkg/rootlessmarker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -24,6 +25,7 @@ var (
 	httpPort            string
 	uShiftImage         string
 	disableOverlayCache bool
+	allowRootless       bool
 )
 
 var createCmd = &cobra.Command{
@@ -55,8 +57,19 @@ var createCmd = &cobra.Command{
 			HTTPPort:            hPort,
 			DisableOverlayCache: viper.GetBool("disable-overlay-cache"),
 		}
+		allowRL := viper.GetBool("allow-rootless")
+		if allowRL {
+			if err := rootlessmarker.Set(); err != nil {
+				log.Fatal("failed to record rootless mode", "err", err)
+			}
+		}
 		err = minc.Create(cType)
 		if err != nil {
+			if allowRL {
+				if rmErr := rootlessmarker.Remove(); rmErr != nil {
+					log.Error("failed to clear rootless marker after create failure", "err", rmErr)
+				}
+			}
 			log.Fatal("error creating cluster", "err", err)
 		}
 		log.Info("Cluster created")
@@ -95,6 +108,9 @@ var deleteCmd = &cobra.Command{
 		err := minc.Delete(viper.GetString("provider"))
 		if err != nil {
 			log.Fatal("error deleting cluster", "err", err)
+		}
+		if err := rootlessmarker.Remove(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: deleted cluster but failed to clear rootless marker: %v\n", err)
 		}
 		fmt.Println("Item deleted")
 	},
@@ -189,6 +205,8 @@ func main() {
 
 	rootCmd.PersistentFlags().StringVarP(&provider, "provider", "p", "", "Specify the provider (e.g., podman, docker)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "Log level (e.g., info, debug, warn)")
+	rootCmd.PersistentFlags().BoolVar(&allowRootless, "allow-rootless", defaultConfig["allow-rootless"].(bool),
+		"Use rootless Podman (no sudo); experimental — MicroShift may not start")
 
 	// Add config subcommands
 	configCmd.AddCommand(configSetCmd, configGetCmd, configUnsetCmd, configViewCmd)
@@ -198,6 +216,7 @@ func main() {
 	// Binding with viper
 	viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider"))
 	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+	viper.BindPFlag("allow-rootless", rootCmd.PersistentFlags().Lookup("allow-rootless"))
 	viper.BindPFlag("microshift-version", createCmd.PersistentFlags().Lookup("microshift-version"))
 	viper.BindPFlag("microshift-image", createCmd.PersistentFlags().Lookup("microshift-image"))
 	viper.BindPFlag("microshift-config", createCmd.PersistentFlags().Lookup("microshift-config"))
